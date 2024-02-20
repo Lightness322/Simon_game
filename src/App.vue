@@ -1,20 +1,26 @@
 <script>
-import { getRandomNum } from "./utils/helpers.js"
 import sound_1 from "./assets/sounds/1.mp3"
 import sound_2 from "./assets/sounds/2.mp3"
 import sound_3 from "./assets/sounds/3.mp3"
 import sound_4 from "./assets/sounds/4.mp3"
 
+import { getRandomNum } from "./utils/helpers.js"
+
+import AppButton from "./components/AppButton.vue"
+import AppInfo from "./components/AppInfo.vue"
+import AppInput from "./components/AppInput.vue"
+
 export default {
+  components: { AppButton, AppInput, AppInfo },
   data() {
     return {
       round: 0,
-      currentBtn: null,
       gameArray: [],
-      isDisable: false,
       userArray: [],
-      isLoser: false,
+      currentBtn: null,
       level: "easy",
+      isLoser: false,
+      isDisable: false,
     }
   },
   computed: {
@@ -39,6 +45,7 @@ export default {
         this.reset()
       }
       this.isDisable = true
+
       this.gameArray.push(getRandomNum())
 
       const copy = [...this.gameArray]
@@ -48,6 +55,7 @@ export default {
 
         if (copy.length === 0) {
           clearInterval(timer)
+
           setTimeout(() => {
             this.currentBtn = null
             this.isDisable = false
@@ -56,9 +64,13 @@ export default {
       }, this.timeout)
     },
     addAnswer(num) {
-      this.userArray.push(num)
-      const userArrayLength = this.userArray.length
       const gameArrayLength = this.gameArray.length
+
+      if (gameArrayLength < 1 || this.isLoser) return null
+
+      this.userArray.push(num)
+
+      const userArrayLength = this.userArray.length
 
       if (
         [...this.gameArray].slice(0, userArrayLength).toString() !==
@@ -79,6 +91,11 @@ export default {
     },
     setLevel(level) {
       this.level = level
+      this.reset()
+    },
+    handleBtnClick(num) {
+      this.highlightBtn(num)
+      this.addAnswer(num)
     },
     highlightBtn(num) {
       if (num === 1) {
@@ -108,88 +125,38 @@ export default {
   <div class="container">
     <div class="game_wrapper">
       <div class="row">
-        <button
+        <AppButton
+          @click="handleBtnClick(1)"
+          :btnNum="1"
+          :currentBtn="currentBtn"
           :disabled="isDisable"
-          class="btn btn-1"
-          :class="{ highlight: currentBtn === 1 }"
-          @click="
-            () => {
-              highlightBtn(1)
-              addAnswer(1)
-            }
-          "
-        ></button>
-        <button
+        />
+        <AppButton
+          @click="handleBtnClick(2)"
+          :btnNum="2"
+          :currentBtn="currentBtn"
           :disabled="isDisable"
-          class="btn btn-2"
-          :class="{ highlight: currentBtn === 2 }"
-          @click="
-            () => {
-              highlightBtn(2)
-              addAnswer(2)
-            }
-          "
-        ></button>
+        />
       </div>
-      <div class="info">
-        <button class="start_btn" :disabled="isDisable" @click="startGame()">
-          start game
-        </button>
-        <span>ROUND: {{ round }}</span>
-        <div class="levels">
-          <label class="label">
-            <span>Junior</span>
-            <input
-              @input="setLevel('easy')"
-              name="level"
-              type="radio"
-              value="easy"
-              checked
-            />
-          </label>
-          <label class="label">
-            <span>Middle</span>
-            <input
-              @input="setLevel('middle')"
-              name="level"
-              type="radio"
-              value="middle"
-            />
-          </label>
-          <label class="label">
-            <span>Senior</span>
-            <input
-              @input="setLevel('hard')"
-              name="level"
-              type="radio"
-              value="hard"
-            />
-          </label>
-        </div>
-      </div>
+      <AppInfo
+        @start="startGame()"
+        @set-level="(level) => setLevel(level)"
+        :round="round"
+        :disabled="isDisable"
+      />
       <div class="row">
-        <button
+        <AppButton
+          @click="handleBtnClick(3)"
+          :btnNum="3"
+          :currentBtn="currentBtn"
           :disabled="isDisable"
-          class="btn btn-3"
-          :class="{ highlight: currentBtn === 3 }"
-          @click="
-            () => {
-              highlightBtn(3)
-              addAnswer(3)
-            }
-          "
-        ></button>
-        <button
+        />
+        <AppButton
+          @click="handleBtnClick(4)"
+          :btnNum="4"
           :disabled="isDisable"
-          class="btn btn-4"
-          :class="{ highlight: currentBtn === 4 }"
-          @click="
-            () => {
-              highlightBtn(4)
-              addAnswer(4)
-            }
-          "
-        ></button>
+          :currentBtn="currentBtn"
+        />
       </div>
       <div class="lose_status" v-if="isLoser">
         You lose at round {{ round }}
@@ -201,7 +168,9 @@ export default {
 <style scoped>
 .container {
   height: 100vh;
+
   background-color: #e5e7eb;
+
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -212,12 +181,14 @@ export default {
   position: relative;
   width: 500px;
   height: 500px;
+  padding: 50px;
+
   background-color: #737373;
   border-radius: 100%;
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 50px;
 }
 
 .row {
@@ -225,64 +196,14 @@ export default {
   justify-content: space-between;
 }
 
-.info {
-  color: white;
-  font-weight: 600;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.start_btn {
-  padding: 4px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.levels {
-  display: flex;
-  gap: 10px;
-}
-.label {
-  display: flex;
-  gap: 2px;
-}
-
-.btn {
-  width: 180px;
-  height: 180px;
-  cursor: pointer;
-}
-
-.btn-1 {
-  border-radius: 100% 10px 10px 10px;
-  background: #991b1b;
-}
-
-.btn-2 {
-  border-radius: 10px 100% 10px 10px;
-  background: #eab308;
-}
-
-.btn-3 {
-  border-radius: 10px 10px 10px 100%;
-  background: #166534;
-}
-
-.btn-4 {
-  border-radius: 10px 10px 100% 10px;
-  background: #1e40af;
-}
-
-.highlight {
-  filter: brightness(150%);
-}
 .lose_status {
-  font-size: 1.6rem;
-  left: 0;
   position: absolute;
+  left: 0;
   top: 105%;
+
   width: 100%;
+
+  font-size: 1.6rem;
   text-align: center;
 }
 </style>
