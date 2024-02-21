@@ -139,7 +139,12 @@ export default {
         />
       </div>
       <AppInfo
-        @start="startGame()"
+        @start="
+          () => {
+            reset()
+            startGame()
+          }
+        "
         @set-level="(level) => setLevel(level)"
         :round="round"
         :disabled="isDisable"
